@@ -1,11 +1,9 @@
 package com.pingou.msuser.presentation.http.controller;
 
-import com.pingou.msuser.dto.SignInDTO;
-import com.pingou.msuser.dto.SignUpDTO;
-import com.pingou.msuser.dto.UserUpdateDTO;
-import com.pingou.msuser.entity.User;
-import com.pingou.msuser.presentation.http.response.UserResponse;
-import com.pingou.msuser.service.UserService;
+import com.pingou.msuser.application.dto.UserUpdateDTO;
+import com.pingou.msuser.domain.entity.User;
+import com.pingou.msuser.application.dto.UserDTO;
+import com.pingou.msuser.domain.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,32 +20,32 @@ public final class UserController {
 
     @ResponseBody
     @RequestMapping(value = "/users", method = RequestMethod.GET)
-    public List<UserResponse> index() {
+    public List<UserDTO> index() {
         List<User> users = (List<User>) userService.findAll();
 
-        return users.stream().map(UserResponse::new).toList();
+        return users.stream().map(UserDTO::new).toList();
     }
 
     @ResponseBody
     @RequestMapping(value = "/users/{id}", method = RequestMethod.GET)
-    public UserResponse show(@PathVariable Long id) {
+    public UserDTO show(@PathVariable String id) {
         User user = userService.find(id);
 
-        return new UserResponse(user);
+        return new UserDTO(user);
     }
 
     @ResponseBody
     @RequestMapping(value = "/users/{id}", method = RequestMethod.PUT)
-    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+    public UserDTO update(@PathVariable String id, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         User updatedUser = userService.update(id, userUpdateDTO.toUser());
 
-        return new UserResponse(updatedUser);
+        return new UserDTO(updatedUser);
     }
 
     @ResponseBody
     @RequestMapping(value = "/users/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         userService.delete(id);
     }
 }

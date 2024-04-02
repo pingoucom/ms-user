@@ -1,21 +1,25 @@
-package com.pingou.msuser.service;
+package com.pingou.msuser.domain.service;
 
-import com.pingou.msuser.entity.User;
-import com.pingou.msuser.exception.EmailIsTakenException;
-import com.pingou.msuser.exception.IncorrectPasswordException;
-import com.pingou.msuser.exception.UserNotFoundException;
-import com.pingou.msuser.hash.Hasher;
-import com.pingou.msuser.repository.UserRepository;
+import com.pingou.msuser.domain.broker.producer.UserProducer;
+import com.pingou.msuser.domain.entity.User;
+import com.pingou.msuser.domain.exception.EmailIsTakenException;
+import com.pingou.msuser.domain.exception.UserNotFoundException;
+import com.pingou.msuser.domain.exception.IncorrectPasswordException;
+import com.pingou.msuser.domain.hash.Hasher;
+import com.pingou.msuser.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final Hasher hasher;
 
+    private final UserProducer userProducer;
+
     private final UserRepository userRepository;
 
-    public UserService(Hasher hasher, UserRepository userRepository) {
+    public UserService(Hasher hasher, UserProducer userProducer, UserRepository userRepository) {
         this.hasher = hasher;
+        this.userProducer = userProducer;
         this.userRepository = userRepository;
     }
 
@@ -39,21 +43,24 @@ public class UserService {
         }
 
         newUser.setPassword(hasher.hash(newUser.getPassword()));
+        newUser = userRepository.save(newUser);
 
-        return userRepository.save(newUser);
+        userProducer.produceUserCreationMessage(newUser);
+
+        return newUser;
     }
 
     public Iterable<User> findAll() {
         return userRepository.findAll();
     }
 
-    public User find(Long id) throws UserNotFoundException {
+    public User find(String id) throws UserNotFoundException {
         return userRepository
                 .findById(id)
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public User update(Long id, User updatedUser) throws UserNotFoundException {
+    public User update(String id, User updatedUser) throws UserNotFoundException {
         return userRepository
                 .findById(id)
                 .map(u -> {
@@ -65,11 +72,12 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public void delete(Long id) throws UserNotFoundException {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException();
-        }
+    public void delete(String id) throws UserNotFoundException {
+        User user = userRepository
+                .findById(id)
+                .orElseThrow(UserNotFoundException::new);
 
-        userRepository.deleteById(id);
+        userRepository.deleteById(user.getId());
+        userProducer.produceUserDeletionMessage(user);
     }
 }

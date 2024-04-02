@@ -1,6 +1,6 @@
-package com.pingou.msuser.hash;
+package com.pingou.msuser.infrastructure.hash;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.pingou.msuser.domain.hash.Hasher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 

@@ -1,10 +1,10 @@
 package com.pingou.msuser.presentation.http.controller;
 
-import com.pingou.msuser.dto.SignInDTO;
-import com.pingou.msuser.dto.SignUpDTO;
-import com.pingou.msuser.entity.User;
-import com.pingou.msuser.presentation.http.response.UserResponse;
-import com.pingou.msuser.service.UserService;
+import com.pingou.msuser.application.dto.SignInDTO;
+import com.pingou.msuser.application.dto.SignUpDTO;
+import com.pingou.msuser.domain.entity.User;
+import com.pingou.msuser.application.dto.UserDTO;
+import com.pingou.msuser.domain.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,18 +24,18 @@ public final class AuthController {
 
     @ResponseBody
     @RequestMapping(value = "/sign-in", method = RequestMethod.POST)
-    public UserResponse signIn(@Valid @RequestBody SignInDTO signInDTO) {
+    public UserDTO signIn(@Valid @RequestBody SignInDTO signInDTO) {
         User user = userService.signIn(signInDTO.getEmail(), signInDTO.getPassword());
 
-        return new UserResponse(user);
+        return new UserDTO(user);
     }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(value = "/sign-up", method = RequestMethod.POST)
-    public UserResponse signUp(@Valid @RequestBody SignUpDTO signUpDTO) {
+    public UserDTO signUp(@Valid @RequestBody SignUpDTO signUpDTO) {
         User newUser = userService.signUp(signUpDTO.toUser());
 
-        return new UserResponse(newUser);
+        return new UserDTO(newUser);
     }
 }

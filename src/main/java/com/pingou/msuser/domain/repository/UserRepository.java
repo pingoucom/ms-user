@@ -1,14 +1,13 @@
-package com.pingou.msuser.repository;
+package com.pingou.msuser.domain.repository;
 
-import com.pingou.msuser.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.pingou.msuser.domain.entity.User;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends CrudRepository<User, Long> {
+public interface UserRepository extends CrudRepository<User, String> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);

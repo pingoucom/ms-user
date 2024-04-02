@@ -1,7 +1,7 @@
-package com.pingou.msuser.dto;
+package com.pingou.msuser.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pingou.msuser.entity.User;
+import com.pingou.msuser.domain.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserUpdateDTO {
+public class SignUpDTO {
     @NotBlank
     @JsonProperty("name")
     private String name;
@@ -19,10 +19,15 @@ public class UserUpdateDTO {
     @JsonProperty("email")
     private String email;
 
+    @NotBlank
+    @JsonProperty("password")
+    private String password;
+
     public User toUser() {
         User newUser = new User();
         newUser.setName(name);
         newUser.setEmail(email);
+        newUser.setPassword(password);
 
         return newUser;
     }

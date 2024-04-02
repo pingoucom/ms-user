@@ -1,4 +1,4 @@
-package com.pingou.msuser.hash;
+package com.pingou.msuser.domain.hash;
 
 public interface Hasher {
     String hash(String plainPassword);
