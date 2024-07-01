@@ -1,59 +1,87 @@
 version: '3'
 services:
+  # Configure our ms-user Spring Boot application
+  ms-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms-user?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ms-user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - '8080:8080'
+    networks:
+      - ms-user
+
   mysql:
-      image: 'mysql/mysql-server:8.0'
-      ports:
-          - '3306:3306'
-      environment:
-          MYSQL_ROOT_PASSWORD: 'root'
-          MYSQL_ROOT_HOST: "%"
-          MYSQL_DATABASE: 'ms-user'
-          MYSQL_USER: 'ms-user'
-          MYSQL_PASSWORD: 'password'
-          MYSQL_ALLOW_EMPTY_PASSWORD: 1
-      volumes:
-          - 'mysql:/var/lib/mysql'
-          - './docker/database/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-      healthcheck:
-          test: ["CMD", "mysqladmin", "ping", "-p password"]
-          retries: 3
-          timeout: 5s
+    image: 'mysql/mysql-server:8.0'
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: 'ms-user'
+      MYSQL_USER: 'ms-user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    networks:
+      - ms-user
+    volumes:
+      - 'mysql:/var/lib/mysql'
+      - './docker/database/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p password" ]
+      retries: 3
+      timeout: 5s
 
   zookeeper:
-      image: confluentinc/cp-zookeeper:7.4.4
-      environment:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-      ports:
-          - '22181:2181'
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ms-user
+    ports:
+      - '22181:2181'
 
   kafka:
-      image: confluentinc/cp-kafka:7.4.4
-      depends_on:
-          - zookeeper
-      ports:
-          - '29092:29092'
-          - '9092:9092'
-      volumes:
-          - 'kafka:/var/lib/kafka/data'
-      environment:
-          KAFKA_BROKER_ID: 1
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-          KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    networks:
+      - ms-user
+    ports:
+      - '29092:29092'
+      - '9092:9092'
+    volumes:
+      - 'kafka:/var/lib/kafka/data'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   kafka-ui:
-      image: provectuslabs/kafka-ui:latest
-      ports:
-          - '8081:8080'
-      depends_on:
-          - kafka
-      environment:
-          KAFKA_CLUSTERS_0_NAME: local
-          KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-          DYNAMIC_CONFIG_ENABLED: 'true'
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - '8081:8080'
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+
+networks:
+  ms-user:
+    driver: bridge
 
 volumes:
   kafka:

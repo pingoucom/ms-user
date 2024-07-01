@@ -1,6 +1,6 @@
 package com.pingou.msuser.presentation.http.controller;
 
-import com.pingou.msuser.application.dto.SignInDTO;
+import com.pingou.msuser.application.cases.auth.sign_up.Input;
 import com.pingou.msuser.application.dto.SignUpDTO;
 import com.pingou.msuser.domain.entity.User;
 import com.pingou.msuser.application.dto.UserDTO;
@@ -24,7 +24,7 @@ public final class AuthController {
 
     @ResponseBody
     @RequestMapping(value = "/sign-in", method = RequestMethod.POST)
-    public UserDTO signIn(@Valid @RequestBody SignInDTO signInDTO) {
+    public UserDTO signIn(@Valid @RequestBody Input signInDTO) {
         User user = userService.signIn(signInDTO.getEmail(), signInDTO.getPassword());
 
         return new UserDTO(user);

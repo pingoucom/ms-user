@@ -1,4 +1,4 @@
-package com.pingou.msuser.application.dto;
+package com.pingou.msuser.presentation.http.request.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SignInDTO {
+public class SignInRequest {
     @Email(regexp = "^[A-Za-z0-9+_.-]+@(.+)$")
     @NotBlank
     @JsonProperty("email")
