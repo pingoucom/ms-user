@@ -14,6 +14,6 @@ public class TokenService {
     }
 
     public Token create(User user) {
-        return tokenRepository.create(user);
+        return tokenRepository.createToken(user);
     }
 }

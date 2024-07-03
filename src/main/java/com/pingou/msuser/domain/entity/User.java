@@ -19,6 +19,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(unique = true)
+    private String consumerId;
+
     private String name;
 
     @Column(unique = true)

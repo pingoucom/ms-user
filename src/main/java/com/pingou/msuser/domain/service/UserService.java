@@ -1,11 +1,11 @@
 package com.pingou.msuser.domain.service;
 
-import com.pingou.msuser.domain.broker.producer.UserProducer;
 import com.pingou.msuser.domain.entity.User;
 import com.pingou.msuser.domain.exception.EmailIsTakenException;
 import com.pingou.msuser.domain.exception.UserNotFoundException;
 import com.pingou.msuser.domain.exception.IncorrectPasswordException;
 import com.pingou.msuser.domain.hash.Hasher;
+import com.pingou.msuser.domain.repository.TokenRepository;
 import com.pingou.msuser.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final Hasher hasher;
 
-    private final UserProducer userProducer;
+    private final TokenRepository tokenRepository;
 
     private final UserRepository userRepository;
 
-    public UserService(Hasher hasher, UserProducer userProducer, UserRepository userRepository) {
+    public UserService(Hasher hasher, TokenRepository tokenRepository, UserRepository userRepository) {
         this.hasher = hasher;
-        this.userProducer = userProducer;
+        this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
     }
 
@@ -35,7 +35,12 @@ public class UserService {
         return user;
     }
 
-    public User signUp(User newUser) throws EmailIsTakenException {
+    public User signUp(String name, String email, String password) throws EmailIsTakenException {
+        User newUser = new User();
+        newUser.setName(name);
+        newUser.setEmail(email);
+        newUser.setPassword(password);
+
         boolean isEmailTaken = userRepository.existsByEmail(newUser.getEmail());
 
         if (isEmailTaken) {
@@ -45,7 +50,8 @@ public class UserService {
         newUser.setPassword(hasher.hash(newUser.getPassword()));
         newUser = userRepository.save(newUser);
 
-        userProducer.produceUserCreationMessage(newUser);
+        newUser.setConsumerId(tokenRepository.createConsumer(newUser));
+        newUser = userRepository.save(newUser);
 
         return newUser;
     }
@@ -60,24 +66,11 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public User update(String id, User updatedUser) throws UserNotFoundException {
-        return userRepository
-                .findById(id)
-                .map(u -> {
-                    u.setName(updatedUser.getName());
-                    u.setEmail(updatedUser.getEmail());
-
-                    return userRepository.save(u);
-                })
-                .orElseThrow(UserNotFoundException::new);
-    }
-
     public void delete(String id) throws UserNotFoundException {
         User user = userRepository
                 .findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
         userRepository.deleteById(user.getId());
-        userProducer.produceUserDeletionMessage(user);
     }
 }

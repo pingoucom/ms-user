@@ -7,7 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SignInRequest {
+public class SignUpRequest {
+    @NotBlank
+    private String name;
+
     @Email(regexp = "^[A-Za-z0-9+_.-]+@(.+)$")
     @NotBlank
     private String email;

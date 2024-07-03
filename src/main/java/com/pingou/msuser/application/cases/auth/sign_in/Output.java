@@ -1,4 +1,4 @@
-package com.pingou.msuser.application.cases.auth.sign_up;
+package com.pingou.msuser.application.cases.auth.sign_in;
 
 import com.pingou.msuser.domain.entity.Token;
 import com.pingou.msuser.domain.entity.User;

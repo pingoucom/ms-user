@@ -1,10 +1,10 @@
 package com.pingou.msuser.presentation.http.controller;
 
-import com.pingou.msuser.application.cases.auth.sign_up.Input;
-import com.pingou.msuser.application.dto.SignUpDTO;
-import com.pingou.msuser.domain.entity.User;
-import com.pingou.msuser.application.dto.UserDTO;
-import com.pingou.msuser.domain.service.UserService;
+import com.pingou.msuser.presentation.http.request.auth.SignInRequest;
+import com.pingou.msuser.presentation.http.request.auth.SignUpRequest;
+import com.pingou.msuser.presentation.http.response.AuthenticationResponse;
+import com.pingou.msuser.presentation.http.response.TokenResponse;
+import com.pingou.msuser.presentation.http.response.UserResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,26 +16,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public final class AuthController {
-    private final UserService userService;
+    private final com.pingou.msuser.application.cases.auth.sign_in.SignInUseCase signInUseCase;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+    private final com.pingou.msuser.application.cases.auth.sign_up.SignUpUseCase signUpUseCase;
+
+    public AuthController(
+            com.pingou.msuser.application.cases.auth.sign_in.SignInUseCase signInUseCase,
+            com.pingou.msuser.application.cases.auth.sign_up.SignUpUseCase signUpUseCase
+    ) {
+        this.signInUseCase = signInUseCase;
+        this.signUpUseCase = signUpUseCase;
     }
 
     @ResponseBody
     @RequestMapping(value = "/sign-in", method = RequestMethod.POST)
-    public UserDTO signIn(@Valid @RequestBody Input signInDTO) {
-        User user = userService.signIn(signInDTO.getEmail(), signInDTO.getPassword());
+    public AuthenticationResponse signIn(@Valid @RequestBody SignInRequest request) {
+        com.pingou.msuser.application.cases.auth.sign_in.Output output = signInUseCase.execute(
+                new com.pingou.msuser.application.cases.auth.sign_in.Input(request.getEmail(), request.getPassword())
+        );
 
-        return new UserDTO(user);
+        return new AuthenticationResponse(new TokenResponse(output.getToken()), new UserResponse(output.getUser()));
     }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(value = "/sign-up", method = RequestMethod.POST)
-    public UserDTO signUp(@Valid @RequestBody SignUpDTO signUpDTO) {
-        User newUser = userService.signUp(signUpDTO.toUser());
+    public AuthenticationResponse signUp(@Valid @RequestBody SignUpRequest request) {
+        com.pingou.msuser.application.cases.auth.sign_up.Output output = signUpUseCase.execute(
+                new com.pingou.msuser.application.cases.auth.sign_up.Input(request.getName(), request.getEmail(), request.getPassword())
+        );
 
-        return new UserDTO(newUser);
+        return new AuthenticationResponse(new TokenResponse(output.getToken()), new UserResponse(output.getUser()));
     }
 }
