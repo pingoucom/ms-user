@@ -5,18 +5,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - mysql
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms-user?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: ms-user
       SPRING_DATASOURCE_PASSWORD: password
       KONG_BASE_URI: http://kong:8001
     ports:
-      - '8080:8080'
+      - '8081:8080'
     networks:
       - api-gateway_microservices
-      - ms-user
+      - mysql_microservices
 
   mysql:
     image: 'mysql/mysql-server:8.0'
@@ -30,7 +28,7 @@ services:
       MYSQL_PASSWORD: 'password'
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
     networks:
-      - ms-user
+      - mysql_microservices
     volumes:
       - 'mysql:/var/lib/mysql'
       - './docker/database/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
@@ -43,8 +41,9 @@ networks:
   api-gateway_microservices:
     driver: bridge
     external: true
-  ms-user:
+  mysql_microservices:
     driver: bridge
+    external: true
 
 volumes:
   mysql:
